@@ -8,14 +8,15 @@ const supaAnonKey:string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 const supabase = supa.createClient(supaURL, supaAnonKey);
 
 app.get('/', (req:Request, resp:Response) =>{
-        resp.send('TypeScript express is enabled');
-})
-app.get('/f1/status', async (req:Request, res:Response) => { 
+        resp.send('api is enabled');
+});
+app.get('/api/seasons', async (req:Request, resp: Response) =>{
     const {data, error} = await supabase 
-        .from('status') 
-        .select(); 
-    res.send(data); 
- });
+        .from('seasons')
+        .select();
+    resp.send(data);
+});
+
 
 app.listen(port, () => {
     console.log("http://localhost:3000/");

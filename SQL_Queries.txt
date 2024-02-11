@@ -1,0 +1,10 @@
+select * from seasons;
+select * from circuits;
+select * from circuits where "circuitRef" = '/*STRING*/';
+
+select * from constructors;
+select * from constructors where "constructorRef"='/*STRING*/';
+
+select * from drivers;
+select * from drivers where "driverRef" ILIKE '/*STRING*/';
+select * from drivers where "surname" ILIKE '/*STRING*/%';
