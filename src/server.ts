@@ -18,8 +18,102 @@ app.get('/api/seasons', async (req:Request, resp: Response) =>{
 });
 
 
+app.get('/api/races/:raceId', async(req:Request, resp:Response) =>{
+    const{data, error} = await supabase
+            .from('races')
+            .select(`year, round, circuits(name, location, country),
+            name, date, time, url`)
+            .eq('raceId', req.params.raceId);
+    resp.send(data);
+});
+
+
+app.get('/api/season/:year', async(req:Request, resp:Response) =>{
+    const {data, error} = await supabase
+            .from('races')
+            .select()
+            .eq('year', req.params.year)
+            .order('round', {ascending: true});
+    resp.send(data);
+});
+
+
+app.get('/api/season/:year/:round', async(req:Request, resp:Response) =>{
+    const {data, error} = await supabase 
+            .from('races')
+            .select()
+            .eq('year', req.params.year)
+            .eq('round', req.params.round);
+    resp.send(data);
+});
+
+
+app.get('/api/races/circuits/:ref', async(req:Request, resp:Response) =>{
+    const {data, error} = await supabase 
+            .from('circuits')
+            .select(`races(year, round, name, date, time, url), name, location, country`)
+            .eq('circuitRef', req.params.ref)
+            .order('year', {
+                foreignTable: 'races', 
+                ascending: true
+            });
+    resp.send(data);
+});
+
+
+app.get('/api/circuits/:ref/season/:start/:end', async(req:Request, resp:Response) =>{
+    const {data, error} = await supabase
+            .from('circuits')
+            .select(`races(year, round, name, date, time, url), name, location, country`)
+            .lte('races.year', req.params.end)
+            .gte('races.year', req.params.start);
+    resp.send(data);
+});
+
+
+app.get('/api/results/:raceId', async(req:Request, resp:Response) =>{
+    const {data, error} = await supabase
+            .from('results')
+            .select(`*, races(year), drivers(driverRef, code, forename, surname), 
+            constructors(name, constructorRef, nationality)`)
+            .eq('raceId', req.params.raceId)
+            .order('grid', {ascending: true});
+    resp.send(data);
+});
+
+
+app.get('/api/results/driver/:ref', async(req:Request, resp:Response) =>{
+    const {data, error} = await supabase
+            .from('results')
+            .select(`*, drivers!inner(driverRef)`)
+            .eq('drivers.driverRef', req.params.ref);
+    resp.send(data);
+});
+
+
+app.get('/api/results/drivers/:ref/seasons/:start/:end', async(req:Request, resp:Response) =>{
+    const {data, error} = await supabase
+            .from('results')
+            .select(`*, drivers!inner(driverRef), races!inner(year)`)
+            .eq('drivers.driverRef', req.params.ref)
+            .lte('races.year', req.params.end)
+            .gte('races.year', req.params.start);
+    resp.send(data);
+});
+
+
+app.get('/api/qualifying/:raceId', async(req:Request, resp:Response) =>{
+    
+});
+app.get('/api/standings/drivers/:raceId', async(req:Request, resp:Response) =>{
+
+});
+app.get('/api/standings/constructors/:raceId', async(req:Request, resp:Response) =>{
+
+});
+
 app.listen(port, () => {
+    console.log('Server is now running on port: ' + port)
     console.log("http://localhost:3000/");
-    console.log("http://localhost:3000/f1/status");
 });
  
