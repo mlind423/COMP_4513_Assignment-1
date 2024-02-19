@@ -17,7 +17,94 @@ app.get('/api/seasons', async (req:Request, resp: Response) =>{
     resp.send(data);
 });
 
+/**
+ * Circuits
+ */
+app.get('/api/circuits', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('circuits')
+        .select();
+    resp.send(data);
+});
 
+
+app.get('/api/circuits/:ref', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('circuits')
+        .select()
+        .eq("circuitRef", req.params.ref);
+    resp.send(data);
+});
+
+
+app.get('/api/circuits/season/:year', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('circuits')
+        .select(`*, races!inner(year)`)
+        .eq('races.year', req.params.year);
+    resp.send(data);
+});
+
+/**
+ * Constructors
+ */
+app.get('/api/constructors', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('constructors')
+        .select();
+    resp.send(data);
+});
+
+
+app.get('/api/constructors/:ref', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('constructors')
+        .select()
+        .eq('constructorRef', req.params.ref);
+    resp.send(data);
+});
+
+/**
+ * Drivers
+ */
+
+app.get('/api/drivers', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('drivers')
+        .select();
+    resp.send(data);
+});
+
+
+app.get('/api/drivers/:ref', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('drivers')
+        .select()
+        .eq('driverRef', req.params.ref);
+    resp.send(data);
+});
+
+
+app.get('/api/drivers/search/:substring', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('drivers')
+        .select()
+        .ilike('surname', `${req.params.substring}%`);
+    resp.send(data);
+});
+
+
+app.get('/api/drivers/race/:raceId', async (req:Request, resp: Response) =>{
+    const {data, error} = await supabase 
+        .from('results')
+        .select(`drivers(*)`)
+        .eq("raceId", req.params.raceId);
+    resp.send(data);
+});
+
+/**
+ * Races
+ */
 app.get('/api/races/:raceId', async(req:Request, resp:Response) =>{
     const{data, error} = await supabase
             .from('races')
@@ -28,7 +115,7 @@ app.get('/api/races/:raceId', async(req:Request, resp:Response) =>{
 });
 
 
-app.get('/api/season/:year', async(req:Request, resp:Response) =>{
+app.get('/api/races/season/:year', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
             .from('races')
             .select()
@@ -38,7 +125,7 @@ app.get('/api/season/:year', async(req:Request, resp:Response) =>{
 });
 
 
-app.get('/api/season/:year/:round', async(req:Request, resp:Response) =>{
+app.get('/api/races/season/:year/:round', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase 
             .from('races')
             .select()
@@ -47,7 +134,9 @@ app.get('/api/season/:year/:round', async(req:Request, resp:Response) =>{
     resp.send(data);
 });
 
-
+/**
+ * Circuits
+ */
 app.get('/api/races/circuits/:ref', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase 
             .from('circuits')
@@ -70,11 +159,15 @@ app.get('/api/circuits/:ref/season/:start/:end', async(req:Request, resp:Respons
     resp.send(data);
 });
 
-
+/**
+ * Results
+ */
 app.get('/api/results/:raceId', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
             .from('results')
-            .select(`*, races(year), drivers(driverRef, code, forename, surname), 
+            .select(`number, grid, position, positionText, positionOrder, points,
+            laps, time, milliseconds, fastestLap, rank, fastestLapTime, fastestLapSpeed, statusId, 
+            races(year), drivers(driverRef, code, forename, surname), 
             constructors(name, constructorRef, nationality)`)
             .eq('raceId', req.params.raceId)
             .order('grid', {ascending: true});
@@ -102,15 +195,35 @@ app.get('/api/results/drivers/:ref/seasons/:start/:end', async(req:Request, resp
 });
 
 
+/**
+ * Qualifying/Standings
+ */
 app.get('/api/qualifying/:raceId', async(req:Request, resp:Response) =>{
-    
+    const {data, error} = await supabase
+            .from("qualifying")
+            .select(`number, position, q1, q2, q3, races(year), drivers(driverRef, code, forename, surname), 
+            constructors(name, constructorRef, nationality)`)
+            .eq('raceId', req.params.raceId)
+            .order('position', {ascending: true});
+    resp.send(data);
 });
+
+
 app.get('/api/standings/drivers/:raceId', async(req:Request, resp:Response) =>{
-
+    const {data, error} = await supabase
+            .from()
+            .select();
+    resp.send(data);
 });
+
+
 app.get('/api/standings/constructors/:raceId', async(req:Request, resp:Response) =>{
-
+    const {data, error} = await supabase
+            .from()
+            .select();
+    resp.send(data);
 });
+
 
 app.listen(port, () => {
     console.log('Server is now running on port: ' + port)
