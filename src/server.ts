@@ -211,16 +211,20 @@ app.get('/api/qualifying/:raceId', async(req:Request, resp:Response) =>{
 
 app.get('/api/standings/drivers/:raceId', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
-            .from()
-            .select();
+            .from('driverStandings')
+            .select(`*, drivers(driverRef, code, forename, surname)`)
+            .eq('raceId', req.params.raceId)
+            .order('position', {ascending: true});
     resp.send(data);
 });
 
 
 app.get('/api/standings/constructors/:raceId', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
-            .from()
-            .select();
+            .from("constructorStandings")
+            .select(`*, constructors(name, constructorRef, nationality)`)
+            .eq('raceId', req.params.raceId)
+            .order('position', {ascending: true});
     resp.send(data);
 });
 
