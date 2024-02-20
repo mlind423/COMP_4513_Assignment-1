@@ -40,7 +40,7 @@ app.get('/api/circuits/:ref', async (req:Request, resp: Response) =>{
 app.get('/api/circuits/season/:year', async (req:Request, resp: Response) =>{
     const {data, error} = await supabase 
         .from('circuits')
-        .select(`*, races!inner(year)`)
+        .select(`*, races!inner()`)
         .eq('races.year', req.params.year);
     resp.send(data);
 });
