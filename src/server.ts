@@ -184,7 +184,7 @@ app.get('/api/results/driver/:ref', async(req:Request, resp:Response) =>{
 });
 
 
-app.get('/api/results/drivers/:ref/seasons/:start/:end', async(req:Request, resp:Response) =>{
+app.get('/api/results/driver/:ref/seasons/:start/:end', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
             .from('results')
             .select(`*, drivers!inner(driverRef), races!inner(year)`)
@@ -209,7 +209,7 @@ app.get('/api/qualifying/:raceId', async(req:Request, resp:Response) =>{
 });
 
 
-app.get('/api/standings/drivers/:raceId', async(req:Request, resp:Response) =>{
+app.get('/api/standings/:raceId/drivers', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
             .from('driverStandings')
             .select(`*, drivers(driverRef, code, forename, surname)`)
@@ -219,7 +219,7 @@ app.get('/api/standings/drivers/:raceId', async(req:Request, resp:Response) =>{
 });
 
 
-app.get('/api/standings/constructors/:raceId', async(req:Request, resp:Response) =>{
+app.get('/api/standings/:raceId/constructors', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
             .from("constructorStandings")
             .select(`*, constructors(name, constructorRef, nationality)`)
