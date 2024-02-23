@@ -32,17 +32,20 @@ app.get('/api/circuits/:ref', async (req:Request, resp: Response) =>{
     const {data, error} = await supabase 
         .from('circuits')
         .select()
-        .eq("circuitRef", req.params.ref);
-    resp.send(data);
+        .ilike("circuitRef", req.params.ref);
+    if(!data || data.length == 0){resp.send({Error: `Could not find circuit named ${req.params.ref}`})}
+    else{resp.send(data);}
 });
 
 
 app.get('/api/circuits/season/:year', async (req:Request, resp: Response) =>{
     const {data, error} = await supabase 
-        .from('circuits')
-        .select(`*, races!inner()`)
-        .eq('races.year', req.params.year);
-    resp.send(data);
+        .from('races')
+        .select(`round, circuits!inner(*)`)
+        .eq('year', req.params.year)
+        .order('round', { ascending: true });
+    if(!data || data.length == 0){resp.send({Error: `Could not find any information under the year: ${req.params.year}`})}
+    else{resp.send(data);}
 });
 
 /**
@@ -61,7 +64,8 @@ app.get('/api/constructors/:ref', async (req:Request, resp: Response) =>{
         .from('constructors')
         .select()
         .eq('constructorRef', req.params.ref);
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find contructor named ${req.params.ref}`})}
+    else{resp.send(data);}
 });
 
 /**
@@ -80,8 +84,9 @@ app.get('/api/drivers/:ref', async (req:Request, resp: Response) =>{
     const {data, error} = await supabase 
         .from('drivers')
         .select()
-        .eq('driverRef', req.params.ref);
-    resp.send(data);
+        .ilike('driverRef', req.params.ref);
+    if(!data || data.length == 0){resp.send({Error: `Could not find driver named ${req.params.ref}`})}
+    else{resp.send(data);}
 });
 
 
@@ -90,7 +95,8 @@ app.get('/api/drivers/search/:substring', async (req:Request, resp: Response) =>
         .from('drivers')
         .select()
         .ilike('surname', `${req.params.substring}%`);
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any drivers containing: ${req.params.substring}`})}
+    else{resp.send(data);}
 });
 
 
@@ -99,7 +105,8 @@ app.get('/api/drivers/race/:raceId', async (req:Request, resp: Response) =>{
         .from('results')
         .select(`drivers(*)`)
         .eq("raceId", req.params.raceId);
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any races with ID of: ${req.params.raceId}`})}
+    else{resp.send(data);}
 });
 
 /**
@@ -111,7 +118,8 @@ app.get('/api/races/:raceId', async(req:Request, resp:Response) =>{
             .select(`year, round, circuits(name, location, country),
             name, date, time, url`)
             .eq('raceId', req.params.raceId);
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any races with ID of: ${req.params.raceId}`})}
+    else{resp.send(data);}
 });
 
 
@@ -121,7 +129,8 @@ app.get('/api/races/season/:year', async(req:Request, resp:Response) =>{
             .select()
             .eq('year', req.params.year)
             .order('round', {ascending: true});
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any races in the year: ${req.params.year}`})}
+    else{resp.send(data);}
 });
 
 
@@ -131,7 +140,8 @@ app.get('/api/races/season/:year/:round', async(req:Request, resp:Response) =>{
             .select()
             .eq('year', req.params.year)
             .eq('round', req.params.round);
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any races in the year: ${req.params.year} with round: ${req.params.round}`})}
+    else{resp.send(data);}
 });
 
 /**
@@ -146,17 +156,24 @@ app.get('/api/races/circuits/:ref', async(req:Request, resp:Response) =>{
                 foreignTable: 'races', 
                 ascending: true
             });
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any races at the circuit ${req.params.ref}`})}
+    else{resp.send(data);}
 });
 
 
-app.get('/api/circuits/:ref/season/:start/:end', async(req:Request, resp:Response) =>{
+app.get('/api/races/circuits/:ref/season/:start/:end', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
             .from('circuits')
             .select(`races(year, round, name, date, time, url), name, location, country`)
             .lte('races.year', req.params.end)
             .gte('races.year', req.params.start);
-    resp.send(data);
+    if(Number(req.params.start) > Number(req.params.end)){
+        resp.send({Error: 'The starting year cannot be larger than the ending year'})
+    }else if(!data || data.length == 0){
+        resp.send({Error: `Could not find any races at circuit: ${req.params.ref} Between the years: ${req.params.start} and ${req.params.end}`})
+    }else{
+        resp.send(data);
+    }
 });
 
 /**
@@ -171,7 +188,8 @@ app.get('/api/results/:raceId', async(req:Request, resp:Response) =>{
             constructors(name, constructorRef, nationality)`)
             .eq('raceId', req.params.raceId)
             .order('grid', {ascending: true});
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any races for the ID: ${req.params.raceId}`})}
+    else{resp.send(data);}
 });
 
 
@@ -180,7 +198,8 @@ app.get('/api/results/driver/:ref', async(req:Request, resp:Response) =>{
             .from('results')
             .select(`*, drivers!inner(driverRef)`)
             .eq('drivers.driverRef', req.params.ref);
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any driver results for: ${req.params.ref}`})}
+    else{resp.send(data);}
 });
 
 
@@ -191,7 +210,13 @@ app.get('/api/results/driver/:ref/seasons/:start/:end', async(req:Request, resp:
             .eq('drivers.driverRef', req.params.ref)
             .lte('races.year', req.params.end)
             .gte('races.year', req.params.start);
-    resp.send(data);
+    if(Number(req.params.start) > Number(req.params.end)){
+        resp.send({Error: 'The starting year cannot be larger than the ending year'})
+    }else if(!data || data.length == 0){
+        resp.send({Error: `Could not find any driver results named:  ${req.params.ref} Between the years: ${req.params.start} and ${req.params.end}`})
+    }else{
+        resp.send(data);
+    }
 });
 
 
@@ -205,7 +230,8 @@ app.get('/api/qualifying/:raceId', async(req:Request, resp:Response) =>{
             constructors(name, constructorRef, nationality)`)
             .eq('raceId', req.params.raceId)
             .order('position', {ascending: true});
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find any qualifying results for race ID: ${req.params.raceId}`})}
+    else{resp.send(data);}
 });
 
 
@@ -215,7 +241,8 @@ app.get('/api/standings/:raceId/drivers', async(req:Request, resp:Response) =>{
             .select(`*, drivers(driverRef, code, forename, surname)`)
             .eq('raceId', req.params.raceId)
             .order('position', {ascending: true});
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find the driver standings for race ID: ${req.params.raceId}`})}
+    else{resp.send(data);}
 });
 
 
@@ -225,7 +252,8 @@ app.get('/api/standings/:raceId/constructors', async(req:Request, resp:Response)
             .select(`*, constructors(name, constructorRef, nationality)`)
             .eq('raceId', req.params.raceId)
             .order('position', {ascending: true});
-    resp.send(data);
+    if(!data || data.length == 0){resp.send({Error: `Could not find the constructor standings for race ID: ${req.params.raceId}`})}
+    else{resp.send(data);}
 });
 
 
