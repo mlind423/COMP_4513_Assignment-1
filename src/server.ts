@@ -197,7 +197,7 @@ app.get('/api/results/:raceId', async(req:Request, resp:Response) =>{
 app.get('/api/results/driver/:ref', async(req:Request, resp:Response) =>{
     const {data, error} = await supabase
             .from('results')
-            .select(`*, drivers!inner(driverRef)`)
+            .select(`*, drivers!inner(driverRef), races!inner(year)`) //I need to add the year here.
             .eq('drivers.driverRef', req.params.ref);
     if(!data || data.length == 0){resp.send({Error: `Could not find any driver results for: ${req.params.ref}`})}
     else{resp.send(data);}
