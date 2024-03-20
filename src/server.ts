@@ -165,6 +165,7 @@ app.get('/api/races/circuits/:ref/season/:start/:end', async(req:Request, resp:R
     const {data, error} = await supabase
             .from('circuits')
             .select(`races(year, round, name, date, time, url), name, location, country`)
+            .eq('circuitRef', req.params.ref)
             .lte('races.year', req.params.end)
             .gte('races.year', req.params.start);
     if(Number(req.params.start) > Number(req.params.end)){
